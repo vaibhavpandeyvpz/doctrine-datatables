@@ -79,11 +79,12 @@ class Builder
     {
         $query = clone $this->queryBuilder;
         $columns = &$this->requestParams['columns'];
+        $c = count($columns);
         // Search
         if (array_key_exists('search', $this->requestParams)) {
             if ($value = trim($this->requestParams['search']['value'])) {
                 $orX = $query->expr()->orX();
-                for ($i = 0; $i < count($columns); $i++) {
+                for ($i = 0; $i < $c; $i++) {
                     $column = &$columns[$i];
                     if ($column['searchable'] == 'true') {
                         if (array_key_exists($column['data'], $this->columnAliases)) {
@@ -99,7 +100,7 @@ class Builder
             }
         }
         // Filter
-        for ($i = 0; $i < count($columns); $i++) {
+        for ($i = 0; $i < $c; $i++) {
             $column = &$columns[$i];
             $andX = $query->expr()->andX();
             if (($column['searchable'] == 'true') && ($value = trim($column['search']['value']))) {
