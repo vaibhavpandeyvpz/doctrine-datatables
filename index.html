@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Doctrine-datatables by vaibhavpandeyvpz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Doctrine-datatables</h1>
+      <h2 class="project-tagline">Helper library to implement doctrine powered server-side processing for jquery-datatables with joins, search, filtering and ordering.</h2>
+      <a href="https://github.com/vaibhavpandeyvpz/doctrine-datatables" class="btn">View on GitHub</a>
+      <a href="https://github.com/vaibhavpandeyvpz/doctrine-datatables/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/vaibhavpandeyvpz/doctrine-datatables/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="vaibhavpandeyvpzdoctrine-datatables" class="anchor" href="#vaibhavpandeyvpzdoctrine-datatables" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>vaibhavpandeyvpz/doctrine-datatables</h1>
+
+<p>Helper library to implement <a href="http://www.doctrine-project.org/">Doctrine</a> powered server-side processing for <a href="https://github.com/DataTables/DataTables">jquery-datatables</a> with joins, search, filtering and ordering.</p>
+
+<p><a href="https://github.com/vaibhavpandeyvpz/doctrine-datatables/releases"><img src="https://img.shields.io/github/release/vaibhavpandeyvpz/doctrine-datatables.svg?style=flat-square" alt="Latest Version"></a> <a href="https://scrutinizer-ci.com/g/vaibhavpandeyvpz/doctrine-datatables/?branch=master"><img src="https://scrutinizer-ci.com/g/vaibhavpandeyvpz/doctrine-datatables/badges/quality-score.png?b=master" alt="Scrutinizer Code Quality"></a> <a href="https://insight.sensiolabs.com/projects/4ac1aa6a-a495-49e0-b5d6-d7b82be2a5f6"><img src="https://insight.sensiolabs.com/projects/4ac1aa6a-a495-49e0-b5d6-d7b82be2a5f6/mini.png" alt="SensioLabsInsight"></a> <a href="https://packagist.org/packages/vaibhavpandeyvpz/doctrine-datatables"><img src="https://img.shields.io/packagist/dt/vaibhavpandeyvpz/doctrine-datatables.svg?style=flat-square" alt="Total Downloads"></a> <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square" alt="Software License"></a> </p>
+
+<h2>
+<a id="install" class="anchor" href="#install" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install</h2>
+
+<div class="highlight highlight-source-shell"><pre>composer require vaibhavpandeyvpz/doctrine-datatables</pre></div>
+
+<h2>
+<a id="basic-usage" class="anchor" href="#basic-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Basic Usage</h2>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">Doctrine\DataTables</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$connection</span> <span class="pl-k">=</span> <span class="pl-c">/** instanceof Doctrine\DBAL\Connection */</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$datatables</span> <span class="pl-k">=</span> (<span class="pl-k">new</span> <span class="pl-c1">DataTables\</span><span class="pl-c1">Builder</span>())</span>
+<span class="pl-s1">    <span class="pl-k">-&gt;</span>withIndexColumn(<span class="pl-s"><span class="pl-pds">'</span>id<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">    <span class="pl-k">-&gt;</span>withQueryBuilder(</span>
+<span class="pl-s1">        <span class="pl-smi">$connection</span><span class="pl-k">-&gt;</span>createQueryBuilder()</span>
+<span class="pl-s1">            <span class="pl-k">-&gt;</span>select(<span class="pl-s"><span class="pl-pds">'</span>*<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">            <span class="pl-k">-&gt;</span>from(<span class="pl-s"><span class="pl-pds">'</span>users<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">    )</span>
+<span class="pl-s1">    <span class="pl-k">-&gt;</span>withRequestParams(<span class="pl-smi">$_GET</span>);</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c1">echo</span> <span class="pl-c1">json_encode</span>(<span class="pl-smi">$datatables</span><span class="pl-k">-&gt;</span>getData());</span></pre></div>
+
+<h2>
+<a id="advanced-usage-joins" class="anchor" href="#advanced-usage-joins" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Advanced Usage (Joins)</h2>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">Doctrine\DataTables</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$connection</span> <span class="pl-k">=</span> <span class="pl-c">/** instanceof Doctrine\DBAL\Connection */</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$datatables</span> <span class="pl-k">=</span> (<span class="pl-k">new</span> <span class="pl-c1">DataTables\</span><span class="pl-c1">Builder</span>())</span>
+<span class="pl-s1">    <span class="pl-k">-&gt;</span>withColumnAliases([</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">'</span>id<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>u.id<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">'</span>created_at<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>u.created_at<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">'</span>updated_at<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>u.updated_at<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">    ])</span>
+<span class="pl-s1">    <span class="pl-k">-&gt;</span>withIndexColumn(<span class="pl-s"><span class="pl-pds">'</span>id<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">    <span class="pl-k">-&gt;</span>withQueryBuilder(</span>
+<span class="pl-s1">        <span class="pl-smi">$connection</span><span class="pl-k">-&gt;</span>createQueryBuilder()</span>
+<span class="pl-s1">            <span class="pl-k">-&gt;</span>select(<span class="pl-s"><span class="pl-pds">'</span>u.*<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>p.first_name<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>p.last_name<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">            <span class="pl-k">-&gt;</span>from(<span class="pl-s"><span class="pl-pds">'</span>users<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>u<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">            <span class="pl-k">-&gt;</span>leftJoin(<span class="pl-s"><span class="pl-pds">'</span>u<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>profiles<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>p<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>p.user_id = u.id<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">    )</span>
+<span class="pl-s1">    <span class="pl-k">-&gt;</span>withRequestParams(<span class="pl-smi">$_GET</span>);</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c1">echo</span> <span class="pl-c1">json_encode</span>(<span class="pl-smi">$datatables</span><span class="pl-k">-&gt;</span>getData());</span></pre></div>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p>See <a href="https://github.com/vaibhavpandeyvpz/doctrine-datatables/blob/master/LICENSE.md">LICENSE.md</a> file.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/vaibhavpandeyvpz/doctrine-datatables">Doctrine-datatables</a> is maintained by <a href="https://github.com/vaibhavpandeyvpz">vaibhavpandeyvpz</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
