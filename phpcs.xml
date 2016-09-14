@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<ruleset name="vaibhavpandeyvpz/doctrine-datatables">
+    <description>Default PSR-2 config for CodeSniffer.</description>
+    <file>src</file>
+    <rule ref="PSR2" />
+</ruleset>

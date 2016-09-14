@@ -1,0 +1,17 @@
+{
+  "autoload": {
+    "psr-4": {
+      "Doctrine\\DataTables\\": "src/"
+    }
+  },
+  "description": "Helper library to implement doctrine powered server-side processing for jquery-datatables with joins, search, filtering and ordering.",
+  "homepage": "http://vaibhavpandeyvpz.github.io/doctrine-datatables",
+  "keywords": [ "doctrine", "jquery", "datatables" ],
+  "license": "MIT",
+  "name" : "vaibhavpandeyvpz/doctrine-datatables",
+  "require": {
+    "php": ">=5.3.0",
+    "doctrine/dbal": "~2.5"
+  },
+  "type": "library"
+}
