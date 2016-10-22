@@ -27,6 +27,11 @@ class Builder
     /**
      * @var string
      */
+    protected $columnField = 'name'; // or 'data'
+
+    /**
+     * @var string
+     */
     protected $indexColumn = '*';
 
     /**
@@ -51,10 +56,10 @@ class Builder
             $order = &$this->requestParams['order'];
             foreach ($order as $sort) {
                 $column = &$columns[intval($sort['column'])];
-                if (array_key_exists($column['data'], $this->columnAliases)) {
-                    $column['data'] = $this->columnAliases[$column['data']];
+                if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
+                    $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                 }
-                $query->addOrderBy($column['data'], $sort['dir']);
+                $query->addOrderBy($column[$this->columnField], $sort['dir']);
             }
         }
         // Offset
@@ -87,10 +92,10 @@ class Builder
                 for ($i = 0; $i < $c; $i++) {
                     $column = &$columns[$i];
                     if ($column['searchable'] == 'true') {
-                        if (array_key_exists($column['data'], $this->columnAliases)) {
-                            $column['data'] = $this->columnAliases[$column['data']];
+                        if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
+                            $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                         }
-                        $orX->add($query->expr()->like($column['data'], ':search'));
+                        $orX->add($query->expr()->like($column[$this->columnField], ':search'));
                     }
                 }
                 if ($orX->count() >= 1) {
@@ -104,10 +109,10 @@ class Builder
             $column = &$columns[$i];
             $andX = $query->expr()->andX();
             if (($column['searchable'] == 'true') && ($value = trim($column['search']['value']))) {
-                if (array_key_exists($column['data'], $this->columnAliases)) {
-                    $column['data'] = $this->columnAliases[$column['data']];
+                if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
+                    $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                 }
-                $andX->add($query->expr()->eq($column['data'], ":filter_{$i}"));
+                $andX->add($query->expr()->eq($column[$this->columnField], ":filter_{$i}"));
                 $query->setParameter("filter_{$i}", $value);
             }
             if ($andX->count() >= 1) {
@@ -172,6 +177,16 @@ class Builder
     public function withColumnAliases($columnAliases)
     {
         $this->columnAliases = $columnAliases;
+        return $this;
+    }
+
+    /**
+     * @param array $columnField
+     * @return static
+     */
+    public function withColumnField($columnField)
+    {
+        $this->columnField = $columnField;
         return $this;
     }
 
