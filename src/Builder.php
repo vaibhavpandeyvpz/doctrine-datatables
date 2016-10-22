@@ -112,7 +112,26 @@ class Builder
                 if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
                     $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                 }
-                $andX->add($query->expr()->eq($column[$this->columnField], ":filter_{$i}"));
+                $operator = preg_match('~^\[(?<operator>[=!%<>]+)\].*$~', $value, $matches) ? $matches['operator'] : '=';
+                switch ($operator) {
+                    case '!=': // Not equals; usage: [!=]search_term
+                        $andX->add($query->expr()->neq($column[$this->columnField], ":filter_{$i}"));
+                        break;
+                    case '%': // Like; usage: [%]search_term
+                        $andX->add($query->expr()->like($column[$this->columnField], ":filter_{$i}"));
+                        $value = "%{$value}%";
+                        break;
+                    case '<': // Greater than; usage: [<]search_term
+                        $andX->add($query->expr()->gt($column[$this->columnField], ":filter_{$i}"));
+                        break;
+                    case '>': // Less than; usage: [>]search_term
+                        $andX->add($query->expr()->lt($column[$this->columnField], ":filter_{$i}"));
+                        break;
+                    case '=': // Equals (default); usage: [=]search_term
+                    default:
+                        $andX->add($query->expr()->eq($column[$this->columnField], ":filter_{$i}"));
+                        break;
+                }
                 $query->setParameter("filter_{$i}", $value);
             }
             if ($andX->count() >= 1) {
