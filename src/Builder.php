@@ -152,11 +152,11 @@ class Builder
      */
     public function getRecordsFiltered()
     {
-        return $this->getFilteredQuery()
+        $result = $this->getFilteredQuery()
             ->resetQueryPart('select')
             ->select("count({$this->indexColumn})")
-            ->execute()
-            ->fetchColumn(0);
+            ->execute();
+        return $result->rowCount() === 1 ? $result->fetchColumn(0) : 0;
     }
 
     /**
@@ -165,10 +165,10 @@ class Builder
     public function getRecordsTotal()
     {
         $tmp = clone $this->queryBuilder;
-        return $tmp->resetQueryPart('select')
+        $result = $tmp->resetQueryPart('select')
             ->select("count({$this->indexColumn})")
-            ->execute()
-            ->fetchColumn(0);
+            ->execute();
+        return $result->rowCount() === 1 ? $result->fetchColumn(0) : 0;
     }
 
     /**
