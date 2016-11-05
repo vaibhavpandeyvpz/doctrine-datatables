@@ -12,6 +12,7 @@
 namespace Doctrine\DataTables;
 
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\QueryBuilder as ORMQueryBuilder;
 
 /**
  * Class Builder
@@ -27,7 +28,7 @@ class Builder
     /**
      * @var string
      */
-    protected $columnField = 'name'; // or 'data'
+    protected $columnField = 'data'; // or 'name'
 
     /**
      * @var string
@@ -35,7 +36,7 @@ class Builder
     protected $indexColumn = '*';
 
     /**
-     * @var QueryBuilder
+     * @var QueryBuilder|ORMQueryBuilder
      */
     protected $queryBuilder;
 
@@ -74,11 +75,12 @@ class Builder
             }
         }
         // Fetch
-        return $query->execute()->fetchAll();
+        return $query instanceof ORMQueryBuilder ?
+            $query->getQuery()->getArrayResult() : $query->execute()->fetchAll();
     }
 
     /**
-     * @return QueryBuilder
+     * @return QueryBuilder|ORMQueryBuilder
      */
     public function getFilteredQuery()
     {
@@ -112,12 +114,7 @@ class Builder
                 if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
                     $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                 }
-                if (preg_match('~^\[(?<operator>[=!%<>]+)\](?<query>.*)$~', $value, $matches)) {
-                    $operator = $matches['operator'];
-                    $value = $matches['query'];
-                } else {
-                    $operator = '=';
-                }
+                $operator = preg_match('~^\[(?<operator>[=!%<>]+)\].*$~', $value, $matches) ? $matches['operator'] : '=';
                 switch ($operator) {
                     case '!=': // Not equals; usage: [!=]search_term
                         $andX->add($query->expr()->neq($column[$this->columnField], ":filter_{$i}"));
@@ -126,10 +123,10 @@ class Builder
                         $andX->add($query->expr()->like($column[$this->columnField], ":filter_{$i}"));
                         $value = "%{$value}%";
                         break;
-                    case '>': // Greater than; usage: [>]search_term
+                    case '<': // Greater than; usage: [<]search_term
                         $andX->add($query->expr()->gt($column[$this->columnField], ":filter_{$i}"));
                         break;
-                    case '<': // Less than; usage: [<]search_term
+                    case '>': // Less than; usage: [>]search_term
                         $andX->add($query->expr()->lt($column[$this->columnField], ":filter_{$i}"));
                         break;
                     case '=': // Equals (default); usage: [=]search_term
@@ -152,11 +149,18 @@ class Builder
      */
     public function getRecordsFiltered()
     {
-        $result = $this->getFilteredQuery()
-            ->resetQueryPart('select')
-            ->select("count({$this->indexColumn})")
-            ->execute();
-        return $result->rowCount() === 1 ? $result->fetchColumn(0) : 0;
+        $query = $this->getFilteredQuery();
+        if ($query instanceof ORMQueryBuilder) {
+            return $query->resetDQLPart('select')
+                ->select("COUNT({$this->indexColumn})")
+                ->getQuery()
+                ->getSingleScalarResult();
+        } else {
+            return $query->resetQueryPart('select')
+                ->select("COUNT({$this->indexColumn})")
+                ->execute()
+                ->fetchColumn(0);
+        }
     }
 
     /**
@@ -164,11 +168,18 @@ class Builder
      */
     public function getRecordsTotal()
     {
-        $tmp = clone $this->queryBuilder;
-        $result = $tmp->resetQueryPart('select')
-            ->select("count({$this->indexColumn})")
-            ->execute();
-        return $result->rowCount() === 1 ? $result->fetchColumn(0) : 0;
+        $query = clone $this->queryBuilder;
+        if ($query instanceof ORMQueryBuilder) {
+            return $query->resetDQLPart('select')
+                ->select("COUNT({$this->indexColumn})")
+                ->getQuery()
+                ->getSingleScalarResult();
+        } else {
+            return $query->resetQueryPart('select')
+                ->select("COUNT({$this->indexColumn})")
+                ->execute()
+                ->fetchColumn(0);
+        }
     }
 
     /**
@@ -215,10 +226,10 @@ class Builder
     }
 
     /**
-     * @param QueryBuilder $queryBuilder
+     * @param QueryBuilder|ORMQueryBuilder $queryBuilder
      * @return static
      */
-    public function withQueryBuilder(QueryBuilder $queryBuilder)
+    public function withQueryBuilder($queryBuilder)
     {
         $this->queryBuilder = $queryBuilder;
         return $this;

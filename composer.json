@@ -13,5 +13,8 @@
     "php": ">=5.3.0",
     "doctrine/dbal": "~2.5"
   },
+  "require-dev": {
+    "doctrine/orm": "~2.5"
+  },
   "type": "library"
 }
