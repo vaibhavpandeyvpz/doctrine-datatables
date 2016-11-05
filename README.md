@@ -9,7 +9,7 @@ Install
 composer require vaibhavpandeyvpz/doctrine-datatables
 ```
 
-Basic Usage
+Usage with [doctrine/dbal](https://github.com/doctrine/dbal):
 -----
 ```php
 <?php
@@ -27,34 +27,34 @@ $datatables = (new DataTables\Builder())
     )
     ->withRequestParams($_GET);
 
-echo json_encode($datatables->getData());
+echo json_encode($datatables->getResponse());
 ```
 
-Advanced Usage (Joins)
+Usage with [doctrine/orm](https://github.com/doctrine/doctrine2):
 -----
 ```php
 <?php
 
 use Doctrine\DataTables;
 
-$connection = /** instanceof Doctrine\DBAL\Connection */;
+$em = /** instanceof Doctrine\ORM\EntityManager */;
 
 $datatables = (new DataTables\Builder())
     ->withColumnAliases([
         'id' => 'u.id',
-        'created_at' => 'u.created_at',
-        'updated_at' => 'u.updated_at',
+        'name' => 'u.name',
+        'email' => 'u.email',
+        'createdAt' => 'u.createdAt',
+        'updatedAt' => 'u.updatedAt',
     ])
-    ->withIndexColumn('id')
+    ->withIndexColumn('u.id')
     ->withQueryBuilder(
-        $connection->createQueryBuilder()
-            ->select('u.*', 'p.first_name', 'p.last_name')
-            ->from('users', 'u')
-            ->leftJoin('u', 'profiles', 'p', 'p.user_id = u.id')
-    )
+        $em->createQueryBuilder()
+            ->select('u')
+            ->from(User::class, 'u'))
     ->withRequestParams($_GET);
 
-echo json_encode($datatables->getData());
+echo json_encode($datatables->getResponse());
 ```
 
 License
