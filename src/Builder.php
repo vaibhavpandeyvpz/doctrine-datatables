@@ -28,7 +28,7 @@ class Builder
     /**
      * @var string
      */
-    protected $columnField = 'data'; // or 'name'
+    protected $columnField = 'name'; // or 'data'
 
     /**
      * @var string
@@ -76,7 +76,7 @@ class Builder
         }
         // Fetch
         return $query instanceof ORMQueryBuilder ?
-            $query->getQuery()->getArrayResult() : $query->execute()->fetchAll();
+            $query->getQuery()->getScalarResult() : $query->execute()->fetchAll();
     }
 
     /**
@@ -216,7 +216,7 @@ class Builder
     }
 
     /**
-     * @param array $columnField
+     * @param string $columnField
      * @return static
      */
     public function withColumnField($columnField)
