@@ -28,7 +28,7 @@ class Builder
     /**
      * @var string
      */
-    protected $columnField = 'name'; // or 'data'
+    protected $columnField = 'data'; // or 'name'
 
     /**
      * @var string
@@ -123,11 +123,11 @@ class Builder
                         $andX->add($query->expr()->like($column[$this->columnField], ":filter_{$i}"));
                         $value = "%{$value}%";
                         break;
-                    case '<': // Greater than; usage: [<]search_term
-                        $andX->add($query->expr()->gt($column[$this->columnField], ":filter_{$i}"));
-                        break;
-                    case '>': // Less than; usage: [>]search_term
+                    case '<': // Less than; usage: [>]search_term
                         $andX->add($query->expr()->lt($column[$this->columnField], ":filter_{$i}"));
+                        break;
+                    case '>': // Greater than; usage: [<]search_term
+                        $andX->add($query->expr()->gt($column[$this->columnField], ":filter_{$i}"));
                         break;
                     case '=': // Equals (default); usage: [=]search_term
                     default:
