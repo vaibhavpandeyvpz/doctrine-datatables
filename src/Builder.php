@@ -36,6 +36,11 @@ class Builder
     protected $indexColumn = '*';
 
     /**
+     * @var bool
+     */
+    protected $returnCollection = false;
+
+    /**
      * @var QueryBuilder|ORMQueryBuilder
      */
     protected $queryBuilder;
@@ -75,8 +80,14 @@ class Builder
             }
         }
         // Fetch
-        return $query instanceof ORMQueryBuilder ?
-            $query->getQuery()->getScalarResult() : $query->execute()->fetchAll();
+        if ($query instanceof ORMQueryBuilder) {
+            if ($this->returnCollection)
+                return $query->getQuery()->getResult();
+            else
+                return $query->getQuery()->getScalarResult();
+        } else {
+            return $query->execute()->fetchAll();
+        }
     }
 
     /**
@@ -212,6 +223,16 @@ class Builder
     public function withColumnAliases($columnAliases)
     {
         $this->columnAliases = $columnAliases;
+        return $this;
+    }
+
+    /**
+     * @param array $returnObjectCollection
+     * @return static
+     */
+    public function withReturnCollection($returnCollection)
+    {
+        $this->returnCollection = $returnCollection;
         return $this;
     }
 
