@@ -18,8 +18,8 @@ use Doctrine\ORM\QueryBuilder as ORMQueryBuilder;
  * Class Builder
  * @package Doctrine\DataTables
  */
-class Builder
-{
+class Builder {
+
     /**
      * @var array
      */
@@ -44,12 +44,17 @@ class Builder
      * @var array
      */
     protected $requestParams;
+    
+    /**
+     * @var string
+     */
+    protected $searchDelimiter = false;
+    
 
     /**
      * @return array
      */
-    public function getData()
-    {
+    public function getData() {
         $query = $this->getFilteredQuery();
         $columns = &$this->requestParams['columns'];
         // Order
@@ -76,37 +81,65 @@ class Builder
         }
         // Fetch
         return $query instanceof ORMQueryBuilder ?
-            $query->getQuery()->getScalarResult() : $query->execute()->fetchAll();
+                $query->getQuery()->getScalarResult() : $query->execute()->fetchAll();
     }
 
     /**
      * @return QueryBuilder|ORMQueryBuilder
      */
-    public function getFilteredQuery()
-    {
+    public function getFilteredQuery() {
         $query = clone $this->queryBuilder;
         $columns = &$this->requestParams['columns'];
         $c = count($columns);
         // Search
         if (array_key_exists('search', $this->requestParams)) {
             if ($value = trim($this->requestParams['search']['value'])) {
-                $orX = $query->expr()->orX();
-                for ($i = 0; $i < $c; $i++) {
-                    $column = &$columns[$i];
-                    if ($column['searchable'] == 'true') {
-                        if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
-                            $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
+                
+                if ($this->searchDelimiter !== false && strpos($value, $this->searchDelimiter) !== false) {
+                    $index = 0;
+                    $parts = explode($this->searchDelimiter, $value);
+                    $partsAndX = $query->expr()->andX();
+                    foreach ($parts as $part) {
+
+                        $orX = $query->expr()->orX();
+                        for ($i = 0; $i < $c; $i++) {
+                            $column = &$columns[$i];
+                            if ($column['searchable'] == 'true') {
+                                if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
+                                    $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
+                                }
+                                $orX->add($query->expr()->like($column[$this->columnField], ':search'.$index));
+                            }
                         }
-                        $orX->add($query->expr()->like($column[$this->columnField], ':search'));
+                        
+                        $partsAndX->add($orX);
+                        $query->setParameter('search'.$index, "%{$part}%");
+                        $index++;
                     }
-                }
-                if ($orX->count() >= 1) {
-                    $query->andWhere($orX)
-                        ->setParameter('search', "%{$value}%");
+                    if ($partsAndX->count() >= 1) {
+                        $query->andWhere($partsAndX);
+                    }
+                    
+                } else {
+                    $orX = $query->expr()->orX();
+                    for ($i = 0; $i < $c; $i++) {
+                        $column = &$columns[$i];
+                        if ($column['searchable'] == 'true') {
+                            if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
+                                $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
+                            }
+                            $orX->add($query->expr()->like($column[$this->columnField], ':search'));
+                        }
+                    }
+                    if ($orX->count() >= 1) {
+                        $query->andWhere($orX)
+                                ->setParameter('search', "%{$value}%");
+                    }
                 }
             }
         }
         // Filter
+        
         for ($i = 0; $i < $c; $i++) {
             $column = &$columns[$i];
             $andX = $query->expr()->andX();
@@ -147,46 +180,43 @@ class Builder
     /**
      * @return int
      */
-    public function getRecordsFiltered()
-    {
+    public function getRecordsFiltered() {
         $query = $this->getFilteredQuery();
         if ($query instanceof ORMQueryBuilder) {
             return $query->resetDQLPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->getQuery()
-                ->getSingleScalarResult();
+                            ->select("COUNT({$this->indexColumn})")
+                            ->getQuery()
+                            ->getSingleScalarResult();
         } else {
             return $query->resetQueryPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->execute()
-                ->fetchColumn(0);
+                            ->select("COUNT({$this->indexColumn})")
+                            ->execute()
+                            ->fetchColumn(0);
         }
     }
 
     /**
      * @return int
      */
-    public function getRecordsTotal()
-    {
+    public function getRecordsTotal() {
         $query = clone $this->queryBuilder;
         if ($query instanceof ORMQueryBuilder) {
             return $query->resetDQLPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->getQuery()
-                ->getSingleScalarResult();
+                            ->select("COUNT({$this->indexColumn})")
+                            ->getQuery()
+                            ->getSingleScalarResult();
         } else {
             return $query->resetQueryPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->execute()
-                ->fetchColumn(0);
+                            ->select("COUNT({$this->indexColumn})")
+                            ->execute()
+                            ->fetchColumn(0);
         }
     }
 
     /**
      * @return array
      */
-    public function getResponse()
-    {
+    public function getResponse() {
         return array(
             'data' => $this->getData(),
             'draw' => $this->requestParams['draw'],
@@ -199,8 +229,7 @@ class Builder
      * @param string $indexColumn
      * @return static
      */
-    public function withIndexColumn($indexColumn)
-    {
+    public function withIndexColumn($indexColumn) {
         $this->indexColumn = $indexColumn;
         return $this;
     }
@@ -209,8 +238,7 @@ class Builder
      * @param array $columnAliases
      * @return static
      */
-    public function withColumnAliases($columnAliases)
-    {
+    public function withColumnAliases($columnAliases) {
         $this->columnAliases = $columnAliases;
         return $this;
     }
@@ -219,8 +247,7 @@ class Builder
      * @param string $columnField
      * @return static
      */
-    public function withColumnField($columnField)
-    {
+    public function withColumnField($columnField) {
         $this->columnField = $columnField;
         return $this;
     }
@@ -229,8 +256,7 @@ class Builder
      * @param QueryBuilder|ORMQueryBuilder $queryBuilder
      * @return static
      */
-    public function withQueryBuilder($queryBuilder)
-    {
+    public function withQueryBuilder($queryBuilder) {
         $this->queryBuilder = $queryBuilder;
         return $this;
     }
@@ -239,9 +265,18 @@ class Builder
      * @param array $requestParams
      * @return static
      */
-    public function withRequestParams($requestParams)
-    {
+    public function withRequestParams($requestParams) {
         $this->requestParams = $requestParams;
         return $this;
     }
+    
+    /**
+     * @param string $delimiter
+     * @return static
+     */
+    public function withSearchDelimiter($delimiter) {
+        $this->searchDelimiter = $delimiter;
+        return $this;
+    }
+
 }
