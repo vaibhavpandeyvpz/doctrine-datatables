@@ -36,6 +36,16 @@ class Builder
     protected $indexColumn = '*';
 
     /**
+     * @var bool
+     */
+    protected $returnCollection = false;
+
+    /**
+     * @var bool
+     */
+    protected $caseInsensitive = false;
+
+    /**
      * @var QueryBuilder|ORMQueryBuilder
      */
     protected $queryBuilder;
@@ -75,8 +85,14 @@ class Builder
             }
         }
         // Fetch
-        return $query instanceof ORMQueryBuilder ?
-            $query->getQuery()->getScalarResult() : $query->execute()->fetchAll();
+        if ($query instanceof ORMQueryBuilder) {
+            if ($this->returnCollection)
+                return $query->getQuery()->getResult();
+            else
+                return $query->getQuery()->getScalarResult();
+        } else {
+            return $query->execute()->fetchAll();
+        }
     }
 
     /**
@@ -97,7 +113,12 @@ class Builder
                         if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
                             $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                         }
-                        $orX->add($query->expr()->like($column[$this->columnField], ':search'));
+                        if ($this->caseInsensitive) {
+                            $searchColumn = "lower(" . $column[$this->columnField] . ")";
+                            $orX->add($query->expr()->like($searchColumn, 'lower(:search)'));
+                        } else {
+                            $orX->add($query->expr()->like($column[$this->columnField], ':search'));
+                        }
                     }
                 }
                 if ($orX->count() >= 1) {
@@ -115,23 +136,30 @@ class Builder
                     $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                 }
                 $operator = preg_match('~^\[(?<operator>[=!%<>]+)\].*$~', $value, $matches) ? $matches['operator'] : '=';
+                if ($this->caseInsensitive) {
+                    $searchColumn = "lower(" . $column[$this->columnField] . ")";
+                    $filter = "lower(:filter_{$i})";
+                } else {
+                    $searchColumn = $column[$this->columnField];
+                    $filter = ":filter_{$i}";
+                }
                 switch ($operator) {
                     case '!=': // Not equals; usage: [!=]search_term
-                        $andX->add($query->expr()->neq($column[$this->columnField], ":filter_{$i}"));
+                        $andX->add($query->expr()->neq($searchColumn, $filter));
                         break;
                     case '%': // Like; usage: [%]search_term
-                        $andX->add($query->expr()->like($column[$this->columnField], ":filter_{$i}"));
+                        $andX->add($query->expr()->like($searchColumn, $filter));
                         $value = "%{$value}%";
                         break;
                     case '<': // Less than; usage: [>]search_term
-                        $andX->add($query->expr()->lt($column[$this->columnField], ":filter_{$i}"));
+                        $andX->add($query->expr()->lt($searchColumn, $filter));
                         break;
                     case '>': // Greater than; usage: [<]search_term
-                        $andX->add($query->expr()->gt($column[$this->columnField], ":filter_{$i}"));
+                        $andX->add($query->expr()->gt($searchColumn, $filter));
                         break;
                     case '=': // Equals (default); usage: [=]search_term
                     default:
-                        $andX->add($query->expr()->eq($column[$this->columnField], ":filter_{$i}"));
+                        $andX->add($query->expr()->eq($searchColumn, $filter));
                         break;
                 }
                 $query->setParameter("filter_{$i}", $value);
@@ -212,6 +240,26 @@ class Builder
     public function withColumnAliases($columnAliases)
     {
         $this->columnAliases = $columnAliases;
+        return $this;
+    }
+
+    /**
+     * @param bool $returnObjectCollection
+     * @return static
+     */
+    public function withReturnCollection($returnCollection)
+    {
+        $this->returnCollection = $returnCollection;
+        return $this;
+    }
+
+    /**
+     * @param bool $caseInsensitive
+     * @return static
+     */
+    public function withCaseInsensitive($caseInsensitive)
+    {
+        $this->caseInsensitive = $caseInsensitive;
         return $this;
     }
 
