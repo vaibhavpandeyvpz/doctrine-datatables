@@ -244,7 +244,7 @@ class Builder
     }
 
     /**
-     * @param array $returnObjectCollection
+     * @param bool $returnObjectCollection
      * @return static
      */
     public function withReturnCollection($returnCollection)
