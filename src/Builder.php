@@ -13,6 +13,7 @@ namespace Doctrine\DataTables;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\QueryBuilder as ORMQueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 /**
  * Class Builder
@@ -178,17 +179,8 @@ class Builder
     public function getRecordsFiltered()
     {
         $query = $this->getFilteredQuery();
-        if ($query instanceof ORMQueryBuilder) {
-            return $query->resetDQLPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->getQuery()
-                ->getSingleScalarResult();
-        } else {
-            return $query->resetQueryPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->execute()
-                ->fetchColumn(0);
-        }
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
+        return $paginator->count();
     }
 
     /**
@@ -197,17 +189,8 @@ class Builder
     public function getRecordsTotal()
     {
         $query = clone $this->queryBuilder;
-        if ($query instanceof ORMQueryBuilder) {
-            return $query->resetDQLPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->getQuery()
-                ->getSingleScalarResult();
-        } else {
-            return $query->resetQueryPart('select')
-                ->select("COUNT({$this->indexColumn})")
-                ->execute()
-                ->fetchColumn(0);
-        }
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
+        return $paginator->count();
     }
 
     /**
