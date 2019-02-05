@@ -132,17 +132,20 @@ class Builder
         for ($i = 0; $i < $c; $i++) {
             $column = &$columns[$i];
             $andX = $query->expr()->andX();
+            $between = false;
             if (($column['searchable'] == 'true') && ($value = trim($column['search']['value']))) {
                 if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
                     $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                 }
-                $operator = preg_match('~^\[(?<operator>[|=!%<>]+)\].*$~', $value, $matches) ? $matches['operator'] : '=';
+                $operator = preg_match('~^\[(?<operator>[|=!%<>:]+)\].*$~', $value, $matches) ? $matches['operator'] : '=';
                 if ($this->caseInsensitive) {
                     $searchColumn = "lower(" . $column[$this->columnField] . ")";
                     $filter = "lower(:filter_{$i})";
+                    $filterY = "lower(:filterY_{$i})";
                 } else {
                     $searchColumn = $column[$this->columnField];
                     $filter = ":filter_{$i}";
+                    $filterY = ":filterY_{$i}";
                 }
                 switch ($operator) {
                     case '!=': // Not equals; usage: [!=]search_term
@@ -166,8 +169,18 @@ class Builder
                         $value = explode('[|]', $value);
                         $andX->add($query->expr()->in($searchColumn, $filter));
                         break;
+                    case ':': // Between a range; usage: [:]search_term
+                        $value = explode('[:]', $value);
+                        $andX->add($query->expr()->between($searchColumn, $filter, $filterY));
+                        $between = true;
+                        break;
                 }
-                $query->setParameter("filter_{$i}", $value);
+                if ($between) {
+                    $query->setParameter("filter_{$i}", $value[0]);
+                    $query->setParameter("filterY_{$i}", $value[1]);
+                } else {
+                    $query->setParameter("filter_{$i}", $value);
+                }
             }
             if ($andX->count() >= 1) {
                 $query->andWhere($andX);
