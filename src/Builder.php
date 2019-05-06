@@ -153,11 +153,17 @@ class Builder
                         $andX->add($query->expr()->like($searchColumn, $filter));
                         $value = "%{$value}%";
                         break;
-                    case '<': // Less than; usage: [>]search_term
+                    case '<': // Less than; usage: [<]search_term
                         $andX->add($query->expr()->lt($searchColumn, $filter));
                         break;
-                    case '>': // Greater than; usage: [<]search_term
+                    case '>': // Greater than; usage: [>]search_term
                         $andX->add($query->expr()->gt($searchColumn, $filter));
+                        break;
+                    case '<=': // Less than or equal; usage: [<=]search_term
+                        $andX->add($query->expr()->lte($searchColumn, $filter));
+                        break;
+                    case '>=': // Greater than or equal; usage: [>=]search_term
+                        $andX->add($query->expr()->gte($searchColumn, $filter));
                         break;
                     case '=': // Equals (default); usage: [=]search_term
                     default:
