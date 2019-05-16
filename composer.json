@@ -8,7 +8,7 @@
   "homepage": "http://vaibhavpandeyvpz.github.io/doctrine-datatables",
   "keywords": [ "doctrine", "jquery", "datatables" ],
   "license": "MIT",
-  "name" : "vaibhavpandeyvpz/doctrine-datatables",
+  "name" : "drchav/doctrine-datatables",
   "require": {
     "php": ">=5.3.0",
     "doctrine/dbal": "~2.5"
