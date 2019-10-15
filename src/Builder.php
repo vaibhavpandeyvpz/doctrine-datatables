@@ -136,7 +136,8 @@ class Builder
                 if (array_key_exists($column[$this->columnField], $this->columnAliases)) {
                     $column[$this->columnField] = $this->columnAliases[$column[$this->columnField]];
                 }
-                $operator = preg_match('~^\[(?<operator>[=!%<>]+)\].*$~', $value, $matches) ? $matches['operator'] : '=';
+                $operator = preg_match('~^\[(?<operator>[=!%<>]+)\](?<search>.*)$~', $value, $matches) ? $matches['operator'] : '=';
+                $value = !empty($matches['search']) ? $matches['search'] : $value;
                 if ($this->caseInsensitive) {
                     $searchColumn = "lower(" . $column[$this->columnField] . ")";
                     $filter = "lower(:filter_{$i})";
@@ -152,11 +153,17 @@ class Builder
                         $andX->add($query->expr()->like($searchColumn, $filter));
                         $value = "%{$value}%";
                         break;
-                    case '<': // Less than; usage: [>]search_term
+                    case '<': // Less than; usage: [<]search_term
                         $andX->add($query->expr()->lt($searchColumn, $filter));
                         break;
-                    case '>': // Greater than; usage: [<]search_term
+                    case '>': // Greater than; usage: [>]search_term
                         $andX->add($query->expr()->gt($searchColumn, $filter));
+                        break;
+                    case '<=': // Less than or equal; usage: [<=]search_term
+                        $andX->add($query->expr()->lte($searchColumn, $filter));
+                        break;
+                    case '>=': // Greater than or equal; usage: [>=]search_term
+                        $andX->add($query->expr()->gte($searchColumn, $filter));
                         break;
                     case '=': // Equals (default); usage: [=]search_term
                     default:
