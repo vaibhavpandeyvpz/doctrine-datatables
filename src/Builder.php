@@ -57,6 +57,11 @@ class Builder
     protected $requestParams;
 
     /**
+     * @var bool|null
+     */
+    protected $useOutputWalkers = null;
+
+    /**
      * @return array
      */
     public function getData()
@@ -180,6 +185,7 @@ class Builder
     {
         $query = $this->getFilteredQuery();
         $paginator = new Paginator($query, $fetchJoinCollection = true);
+        $paginator->setUseOutputWalkers($this->useOutputWalkers);
         return $paginator->count();
     }
 
@@ -190,6 +196,7 @@ class Builder
     {
         $query = clone $this->queryBuilder;
         $paginator = new Paginator($query, $fetchJoinCollection = true);
+        $paginator->setUseOutputWalkers($this->useOutputWalkers);
         return $paginator->count();
     }
 
@@ -233,6 +240,16 @@ class Builder
     public function withReturnCollection($returnCollection)
     {
         $this->returnCollection = $returnCollection;
+        return $this;
+    }
+    
+    /**
+     * @param string $indexColumn
+     * @return static
+     */
+    public function setUseOutputWalkers($useOutputWalkers)
+    {
+        $this->useOutputWalkers = $useOutputWalkers;
         return $this;
     }
 
