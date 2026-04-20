@@ -197,6 +197,7 @@ class Builder
     {
         $query = $this->getFilteredQuery();
         $paginator = new Paginator($query, $fetchJoinCollection = true);
+        $paginator->setUseOutputWalkers(false);
         return $paginator->count();
     }
 
@@ -207,6 +208,7 @@ class Builder
     {
         $query = clone $this->queryBuilder;
         $paginator = new Paginator($query, $fetchJoinCollection = true);
+        $paginator->setUseOutputWalkers(false);
         return $paginator->count();
     }
 
